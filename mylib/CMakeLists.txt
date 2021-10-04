@@ -1,6 +1,6 @@
 project ("mylib")
 
-add_library (${PROJECT_NAME} "src/client.cpp" "src/server.cpp")
+add_library (${PROJECT_NAME} "src/client.cpp" "src/server.cpp" "src/session.cpp")
 
 target_include_directories (${PROJECT_NAME}
 		PUBLIC

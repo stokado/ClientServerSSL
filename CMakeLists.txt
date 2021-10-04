@@ -4,6 +4,13 @@ project ("ClientServerSSL")
 
 set (CMAKE_CXX_STANDARD 11)
 
+if (MSVC)
+    # warning level 4 and all warnings as errors
+    add_compile_options(/bigobj)
+else()
+    # lots of warnings and all warnings as errors
+    add_compile_options(-Wall -Wextra -pedantic -Werror)
+endif()
 
 cmake_policy (SET CMP0074 NEW)
 
