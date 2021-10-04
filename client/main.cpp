@@ -1,6 +1,13 @@
 #include "mylib/client.hpp"
 
 int main() {
-	std::cout << "Hello, Client\n";
+	try {
+		std::string response = Client::getResponse();
+
+	}
+	catch (const std::exception& ex) {
+		std::cerr << ex.what() << endl;
+		return -1;
+	}
 	return 0;
 }
