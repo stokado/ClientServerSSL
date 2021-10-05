@@ -2,6 +2,9 @@ project ("mylib")
 
 add_library (${PROJECT_NAME} "src/client.cpp" "src/server.cpp" "src/session.cpp")
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
 target_include_directories (${PROJECT_NAME}
 		PUBLIC
 			$<INSTALL_INTERFACE:include>
@@ -14,6 +17,7 @@ target_link_libraries (${PROJECT_NAME}
 		PRIVATE
 			${Boost_LIBRARIES}
 			${OPENSSL_LIBRARIES}
+			Threads::Threads
 )
 
 set_target_properties (${PROJECT_NAME}
