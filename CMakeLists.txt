@@ -9,7 +9,7 @@ if (MSVC)
     add_compile_options(/bigobj)
 else()
     # lots of warnings and all warnings as errors
-    add_compile_options(-Wall -Wextra -pedantic -Werror)
+    add_compile_options(-Wall -Wextra)
 endif()
 
 cmake_policy (SET CMP0074 NEW)
