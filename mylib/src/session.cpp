@@ -38,7 +38,7 @@ void Session::on_run() {
 
 void Session::on_handshake(beast::error_code ec) {
 	if (ec) {
-		throw (std::exception{ "handshake" });
+		throw (std::runtime_error{ "handshake" });
 	}
 
 	do_read();
@@ -62,7 +62,7 @@ void Session::on_read(beast::error_code ec, std::size_t bytes_transferred) {
 	}
 
 	if (ec) {
-		throw (std::exception{ "read" });
+		throw (std::runtime_error{ "read" });
 	}
 
 	handle_request(std::move(_req), _lambda, _pkey, _cert);
@@ -72,7 +72,7 @@ void Session::on_write(bool close, beast::error_code ec, std::size_t bytes_trans
 	boost::ignore_unused(bytes_transferred);
 
 	if (ec) {
-		throw (std::exception{ "write" });
+		throw (std::runtime_error{ "write" });
 	}
 
 	if (close) {
@@ -94,7 +94,7 @@ void Session::do_close() {
 
 void Session::on_shutdown(beast::error_code ec) {
 	if (ec)
-		throw (std::exception{ "shutdown" });
+		throw (std::runtime_error{ "shutdown" });
 }
 
 
@@ -133,7 +133,7 @@ void handle_request(
 
 	EVP_PKEY* pubkey = NULL;
 	if (!(pubkey = X509_get_pubkey(cert))) {
-		throw (std::exception{ "get pub key" });
+		throw (std::runtime_error{ "get pub key" });
 	}
 
 	std::string signature = sign_message(pkey, tbs);
@@ -207,25 +207,25 @@ std::string sign_message(EVP_PKEY* pkey, std::string msg) {
 	
 	EVP_MD_CTX* ctx = EVP_MD_CTX_new();
 	if (ctx == NULL) {
-		throw (std::exception{ "md_ctx_new" });
+		throw (std::runtime_error{ "md_ctx_new" });
 	}
 	EVP_PKEY_CTX* pkeyctx;
 	if (!(pkeyctx = EVP_PKEY_CTX_new(pkey, NULL))) {
-		throw (std::exception{ "CTX new" });
+		throw (std::runtime_error{ "CTX new" });
 	}
 
 	if (!EVP_DigestSignInit(ctx, &pkeyctx, EVP_sha256(), NULL, pkey)) {
-		throw (std::exception{ "digest sign init" });
+		throw (std::runtime_error{ "digest sign init" });
 	}
 
 	if (!EVP_DigestSignUpdate(ctx, (unsigned char*)&msg[0], msg.size())) {
-		throw (std::exception{ "digest sign update" });
+		throw (std::runtime_error{ "digest sign update" });
 	}
 
 	size_t siglen = 0;
 
 	if (!EVP_DigestSign(ctx, nullptr, &siglen, (unsigned char*)&msg, msg.size())) {
-		throw (std::exception{ "digest sign final" });
+		throw (std::runtime_error{ "digest sign final" });
 	}
 
 	unsigned char* sig = new  unsigned char[siglen];
@@ -234,7 +234,7 @@ std::string sign_message(EVP_PKEY* pkey, std::string msg) {
 		&siglen,
 		(unsigned char*)&msg,
 		msg.size())) {
-		throw (std::exception{ "digest sign final" });
+		throw (std::runtime_error{ "digest sign final" });
 	}
 
 	char* hexOut = OPENSSL_buf2hexstr(sig, siglen);

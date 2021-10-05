@@ -16,28 +16,28 @@ Server::Server(asio::io_context& ioc, ssl::context& ctx, tcp::endpoint ep)
 	// open acceptor
 	_acceptor.open(ep.protocol(), ec);
 	if (ec) {
-		throw (std::exception{ "open" });
+		throw (std::runtime_error{ "open" });
 		return;
 	}
 
 	// allow address reuse
 	_acceptor.set_option(asio::socket_base::reuse_address(true), ec);
 	if (ec) {
-		throw (std::exception{ "set_option" });
+		throw (std::runtime_error{ "set_option" });
 		return;
 	}
 
 	// bind server to the server address
 	_acceptor.bind(ep, ec);
 	if (ec) {
-		throw (std::exception{ "bind" });
+		throw (std::runtime_error{ "bind" });
 		return;
 	}
 
 	// start listening for connections
 	_acceptor.listen(asio::socket_base::max_listen_connections, ec);
 	if (ec) {
-		throw (std::exception{ "listen" });
+		throw (std::runtime_error{ "listen" });
 		return;
 	}
 }
@@ -49,11 +49,11 @@ void Server::setup_ssl() {
 
 	_ctx.use_certificate_file("servcert.crt", ssl::context_base::file_format::pem, ec);
 	if (ec) {
-		throw (std::exception{ "ERROR: read servcert.crt" });
+		throw (std::runtime_error{ "ERROR: read servcert.crt" });
 	}
 	_ctx.use_private_key_file("pkeyserv.key", ssl::context_base::file_format::pem, ec);
 	if (ec) {
-		throw (std::exception{ "ERROR: read pkeyserv.key" });
+		throw (std::runtime_error{ "ERROR: read pkeyserv.key" });
 	}
 	cout << "Success!\n";
 
@@ -66,24 +66,24 @@ void Server::init_pkey() {
 	EVP_PKEY_CTX* ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_EC, NULL);
 
 	if (!ctx) {
-		throw (std::exception{ "ERROR: EVP_PKEY_CTX\n" });
+		throw (std::runtime_error{ "ERROR: EVP_PKEY_CTX\n" });
 	}
 
 	if (!EVP_PKEY_keygen_init(ctx)) {
-		throw (std::exception{ "ERROR: EVP_PKEY_keygen_init\n" });
+		throw (std::runtime_error{ "ERROR: EVP_PKEY_keygen_init\n" });
 	}
 
 	if (!EVP_PKEY_CTX_set_ec_paramgen_curve_nid(ctx, NID_X9_62_prime256v1)) {
-		throw (std::exception{ "ERROR: EVP_PKEY_CTX_set_ec\n" });
+		throw (std::runtime_error{ "ERROR: EVP_PKEY_CTX_set_ec\n" });
 	}
 
 	if (!EVP_PKEY_keygen(ctx, &_pkey)) {
-		throw (std::exception{ "ERROR: EVP_PKEY_keygen\n" });
+		throw (std::runtime_error{ "ERROR: EVP_PKEY_keygen\n" });
 	}
 
 	BIO* file = BIO_new_file("pkeyserv.key", "wb");
 	if (!file) {
-		throw (std::exception{ "BIO_new_file" });
+		throw (std::runtime_error{ "BIO_new_file" });
 	}
 
 	if (!PEM_write_bio_PrivateKey(
@@ -94,7 +94,7 @@ void Server::init_pkey() {
 		0,
 		nullptr,
 		nullptr)) {
-		throw (std::exception{ "ERROR: PEM_write_PrivateKey\n" });
+		throw (std::runtime_error{ "ERROR: PEM_write_PrivateKey\n" });
 	}
 
 	BIO_free(file);
@@ -117,18 +117,18 @@ void Server::init_cert() {
 	X509_set_issuer_name(_cert, name);
 	X509_sign(_cert, _pkey, EVP_sha256());
 	if (add_ext(NID_key_usage, "digitalSignature,keyCertSign,keyAgreement")) {
-		throw (std::exception{ "Couldn't add key usage\n" });
+		throw (std::runtime_error{ "Couldn't add key usage\n" });
 	}
 
 	BIO* file = BIO_new_file("servcert.crt", "wb");
 	if (!file) {
-		throw (std::exception{ "BIO_new_file" });
+		throw (std::runtime_error{ "BIO_new_file" });
 	}
 
 	if (!PEM_write_bio_X509(
 		file,
 		_cert)) {
-		throw (std::exception{ "ERROR: PEM_write_X509\n" });
+		throw (std::runtime_error{ "ERROR: PEM_write_X509\n" });
 	}
 
 	BIO_free(file);
@@ -171,7 +171,7 @@ void Server::do_accept() {
 
 void Server::on_accept(beast::error_code ec, tcp::socket socket) {
 	if (ec) {
-		throw (std::exception{ "accept" });
+		throw (std::runtime_error{ "accept" });
 	}
 	else {
 		cout << "\nNew connection\n";

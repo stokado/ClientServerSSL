@@ -20,14 +20,14 @@ void Client::get_response(char* host, char* port) {
 	stream.handshake(ssl::stream_base::client, ec);
 
 	if (ec) {
-		throw (std::exception{ "handshake" });
+		throw (std::runtime_error{ "handshake" });
 	}
 
 	http::file_body::value_type body;
 	auto const path = "../../data/test0.json";
 	body.open(path, beast::file_mode::read, ec);
 	if (ec == boost::system::errc::no_such_file_or_directory) {
-		throw (std::exception{ "open file" });
+		throw (std::runtime_error{ "open file" });
 	}
 
 	http::request<http::file_body> req{ http::verb::get, target, 11 };
@@ -74,12 +74,12 @@ void Client::handle_response(const std::string& response, SSL* native) {
 
 	X509* cert = NULL;
 	if (!(cert = SSL_get_peer_certificate(native))) {
-		throw (std::exception{ "get peer cert" });
+		throw (std::runtime_error{ "get peer cert" });
 	}
 
 	EVP_PKEY* pkey = NULL;
 	if (!(pkey = X509_get_pubkey(cert))) {
-		throw (std::exception{ "get pub key" });
+		throw (std::runtime_error{ "get pub key" });
 	}
 
 	if (verify_message(pkey, tover, signature)) {
@@ -96,14 +96,14 @@ bool verify_message(EVP_PKEY* pkey, const std::string& tver, const std::string& 
 	
 	EVP_MD_CTX* ctx = EVP_MD_CTX_new();
 	if (ctx == NULL) {
-		throw (std::exception{ "md ctx new" });
+		throw (std::runtime_error{ "md ctx new" });
 	}
 	if (!(EVP_DigestVerifyInit(ctx, NULL, EVP_sha256(), NULL, pkey))) {
-		throw (std::exception{ "digest verify init" });
+		throw (std::runtime_error{ "digest verify init" });
 	}
 
 	if (!EVP_DigestVerifyUpdate(ctx, (unsigned char*)&tver[0], tver.size())) {
-		throw (std::exception{ "digest sign update" });
+		throw (std::runtime_error{ "digest sign update" });
 	}
 
 	if (!EVP_DigestVerifyFinal(ctx, (unsigned char*)&sig[0], sig.size())) {	
