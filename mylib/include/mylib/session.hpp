@@ -69,7 +69,7 @@ void handle_request(
 
 struct Result {
 	unsigned short status = 0;
-	double value = 0;
+	double result = 0;
 };
 
 
@@ -77,4 +77,4 @@ Result perform_calculation(const std::string& operation,
 	std::vector<double>& numbers);
 
 
-char* sign_message(EVP_PKEY* pkey, std::string plain_text);
+std::string sign_message(EVP_PKEY* pkey, std::string plain_text);

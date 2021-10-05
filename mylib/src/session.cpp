@@ -4,6 +4,7 @@ template <bool isRequest, class Body, class Fields>
 void Session::send_lambda::operator() (http::message<isRequest, Body, Fields>&& msg) const{
 	auto sp = std::make_shared<http::message<isRequest, Body, Fields>>(std::move(msg));
 
+
 	_self._res = sp;
 
 	http::async_write(
@@ -13,6 +14,7 @@ void Session::send_lambda::operator() (http::message<isRequest, Body, Fields>&& 
 			&Session::on_write,
 			_self.shared_from_this(),
 			sp->need_eof()));
+
 }
 
 void Session::run() {
@@ -26,7 +28,7 @@ void Session::run() {
 void Session::on_run() {
 	// set timeout
 	beast::get_lowest_layer(_stream).expires_after(std::chrono::seconds(30));
-
+	
 	_stream.async_handshake(
 		ssl::stream_base::server,
 		beast::bind_front_handler(
@@ -124,19 +126,27 @@ void handle_request(
 	ss.str("");
 	pt.clear();
 
+	std::string status_value = std::to_string(r.status);
+	std::string result_value = std::to_string(r.result);
 
-	std::string plain_text = std::to_string(r.status) + std::to_string(r.value);
-	char* signature = sign_message(pkey, plain_text);
+	std::string tbs = status_value + result_value;
 
-	pt.put("status_value", r.status);
-	pt.put("result_value", r.value);
-	pt.put("hex_signature", "test");
+	EVP_PKEY* pubkey = NULL;
+	if (!(pubkey = X509_get_pubkey(cert))) {
+		throw (std::exception{ "get pub key" });
+	}
+
+	std::string signature = sign_message(pkey, tbs);
+
+	pt.put("status_value", status_value);
+	pt.put("result_value", result_value);
+	pt.put("hex_signature", signature);
 
 	property_tree::write_json(ss, pt);
 
 	cout << "\n*** Sending message ***\n"
 		<< ss.str()
-		<< "\n*** End of message ***\n";
+		<< "*** End of message ***\n";
 	http::response<http::string_body> res{ http::status::ok, req.version() };
 	res.set(http::field::server, "Server");
 	res.set(http::field::content_type, "application/json");
@@ -193,12 +203,44 @@ Result perform_calculation(const std::string& operation,
 
 
 
-char* sign_message(EVP_PKEY* pkey, std::string plain_text) {
-
-	EVP_PKEY_CTX* ctx = EVP_PKEY_CTX_new(pkey, NULL);
-	if (!EVP_PKEY_sign_init(ctx)) {
-		throw (std::exception{ "sign init" });
+std::string sign_message(EVP_PKEY* pkey, std::string msg) {
+	
+	EVP_MD_CTX* ctx = EVP_MD_CTX_new();
+	if (ctx == NULL) {
+		throw (std::exception{ "md_ctx_new" });
+	}
+	EVP_PKEY_CTX* pkeyctx;
+	if (!(pkeyctx = EVP_PKEY_CTX_new(pkey, NULL))) {
+		throw (std::exception{ "CTX new" });
 	}
 
-	// EVP_PKEY_sign(ctx, )
+	if (!EVP_DigestSignInit(ctx, &pkeyctx, EVP_sha256(), NULL, pkey)) {
+		throw (std::exception{ "digest sign init" });
+	}
+
+	if (!EVP_DigestSignUpdate(ctx, (unsigned char*)&msg[0], msg.size())) {
+		throw (std::exception{ "digest sign update" });
+	}
+
+	size_t siglen = 0;
+
+	if (!EVP_DigestSign(ctx, nullptr, &siglen, (unsigned char*)&msg, msg.size())) {
+		throw (std::exception{ "digest sign final" });
+	}
+
+	unsigned char* sig = new  unsigned char[siglen];
+
+	if (!EVP_DigestSign(ctx, sig,
+		&siglen,
+		(unsigned char*)&msg,
+		msg.size())) {
+		throw (std::exception{ "digest sign final" });
+	}
+
+	char* hexOut = OPENSSL_buf2hexstr(sig, siglen);
+	std::string signature{ hexOut };
+
+	EVP_MD_CTX_free(ctx);
+
+	return signature;
 }

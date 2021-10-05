@@ -57,10 +57,7 @@ void Server::setup_ssl() {
 	}
 	cout << "Success!\n";
 
-	/*if (!SSL_CTX_set_cipher_list(_ctx.native_handle(),
-		"ECDHE_ECDSA_AES128_SHA256")) {
-		throw (std::exception{ "ERROR: set_cipher_list" });
-	}*/
+
 }
 
 void Server::init_pkey() {
@@ -177,6 +174,7 @@ void Server::on_accept(beast::error_code ec, tcp::socket socket) {
 		throw (std::exception{ "accept" });
 	}
 	else {
+		cout << "\nNew connection\n";
 		std::make_shared<Session>(
 			std::move(socket),
 			_ctx,
