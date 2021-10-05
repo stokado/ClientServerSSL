@@ -1,5 +1,8 @@
 #include "mylib/client.hpp"
 
+#define BOOST_BIND_GLOBAL_PLACEHOLDERS
+
+
 int main(int argc, char** argv) {
 	if (argc != 3) {
 		std::cerr << "Usage: client <host> <port>\n"

@@ -1,5 +1,7 @@
 ﻿#include "mylib/server.hpp"
 
+#define BOOST_BIND_GLOBAL_PLACEHOLDERS
+
 #ifdef _WIN32
 #include <openssl/applink.c>
 #endif
