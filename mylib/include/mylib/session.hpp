@@ -68,6 +68,10 @@ void handle_request(
 
 
 struct Result {
+	Result(unsigned short new_status, double new_result) {
+		this->status = new_status;
+		this->result = new_result;
+	};
 	unsigned short status = 0;
 	double result = 0;
 };
