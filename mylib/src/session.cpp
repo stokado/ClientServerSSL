@@ -180,11 +180,11 @@ Result perform_calculation(const std::string& operation,
 		}
 		else if (operation == "median") {
 			size_t size = numbers.size();
-			if (size % 2 == 0) {
+			if (size % 2) {
 				value = numbers.at(size / 2);
 			}
 			else {
-				value = (numbers.at(size / 2) + numbers.at(size - 1) / 2) / 2.0;
+				value = (numbers.at(size / 2) + numbers.at((size - 1) / 2)) / 2.0;
 			}
 		}
 		else {
