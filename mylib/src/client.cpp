@@ -1,6 +1,6 @@
 #include "mylib/client.hpp"
 
-void Client::get_response(char* host, char* port) {
+void Client::get_response(char* host, char* port, char* path) {
 	
 	auto const target = "/";
 
@@ -24,7 +24,7 @@ void Client::get_response(char* host, char* port) {
 	}
 
 	http::file_body::value_type body;
-	auto const path = "../../data/test0.json";
+	
 	body.open(path, beast::file_mode::read, ec);
 	if (ec == boost::system::errc::no_such_file_or_directory) {
 		throw (std::runtime_error{ "open file" });

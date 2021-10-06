@@ -21,7 +21,7 @@ using tcp = asio::ip::tcp;
 
 class Client {
 public:
-	static void get_response(char* host, char* port);
+	static void get_response(char* host, char* port, char* path);
 	static void handle_response(const std::string& response, SSL* native);
 };
 
